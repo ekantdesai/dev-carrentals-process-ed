@@ -30,6 +30,21 @@
 				<version>${mule.maven.plugin.version}</version>
 				<extensions>true</extensions>
 				<configuration>
+								 <!--<standaloneDeployment>
+					      <muleHome>"PUT YOUR STANDALONE HOME PATH HERE"</muleHome>
+					      <muleVersion>"PUT YOUR MULE VERSION HERE"</muleVersion>
+				     </standaloneDeployment> -->
+				<cloudHubDeployment>
+				      <uri>https://anypoint.mulesoft.com</uri>
+				      <muleVersion>4.3.0</muleVersion>
+				      <username>ekantdesai3</username>			  
+				      <password>Ekantconflowence5!</password>
+				      <applicationName>dev-carrentals-ws-process-api</applicationName>
+				      <environment>Sandbox</environment>
+					  <businessGroup>Conflowence</businessGroup>
+					  <objectStoreV2>true</objectStoreV2>
+				</cloudHubDeployment>
+				
 				</configuration>
 			</plugin>
 		</plugins>
