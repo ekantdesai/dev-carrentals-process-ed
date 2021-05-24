@@ -1,0 +1,10 @@
+<listAllRentalsResponse>
+    <return companyName="Yo">
+        <rentDate>3</rentDate>
+        <dropoff>asd</dropoff>
+        <carSeats>4</carSeats>
+        <pickup>ohare</pickup>
+        <carBrand>honda</carBrand>
+        <price>100</price>
+    </return>
+</listAllRentalsResponse>

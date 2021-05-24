@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:hertz-car-rental-api="http://www.mulesoft.org/schema/mule/hertz-car-rental-api"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/hertz-car-rental-api http://www.mulesoft.org/schema/mule/hertz-car-rental-api/current/mule-hertz-car-rental-api.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="c73fe099-7e02-465d-9a36-8741ba0f3c62">
+		<http:request-connection host="localhost" port="8083" />
+	</http:request-config>
+	<flow name="getCarRentals" doc:id="11c4530f-e942-43dc-ae3a-211a850107b7" >
+		<set-variable value="message.attributes.queryParams.company" doc:name="company" doc:id="f9202cb3-7aaf-423a-a985-ccb833030bcc" variableName="company"/>
+		<flow-ref doc:name="setDropoff" doc:id="a19a507e-f6b0-46f3-880a-60c5d4b91111" name="setDropoff"/>
+		<validation:is-true doc:name="is valid dropoff" doc:id="358ade8e-33bc-41a0-87e1-4b347e0aedf8" message="#['Invalid destination' ++ ' ' ++ (vars.destination default ' ')]" expression="#[['OHare', 'Midway', 'Mitchell Milwaukee' , 'Chicago', 'Berkeley', 'Elmhurst'] contains vars.destination ]" >
+			<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:INVALID_DROPOFF" />
+		</validation:is-true>
+		<http:request method="GET" doc:name="SystemAPI" doc:id="dfb2ee07-cbbd-443f-a332-3dd5333a82cf" config-ref="HTTP_Request_configuration" path="/system_rentals" responseTimeout="200000">
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	dropoff : attributes.queryParams.dropoff,
+	company : vars.company
+}]]]></http:query-params>
+		</http:request>
+		<logger level="INFO" doc:name="Logger" doc:id="8a079e97-1906-410e-9cc7-856c4fefd589" />
+		<error-handler>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="caebdaf6-7788-456d-ba8f-f582053e9151" type="APP:INVALID_DROPOFF">
+				<ee:transform doc:name="Transform Message" doc:id="881ac2d5-92bf-4e21-8822-a39de0f35d5e" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": "invalid drizzle off"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-variable value="200" doc:name="httpStatus" doc:id="a568addf-ecb2-4412-a9f8-6661aeb82d07" variableName="httpStatus"/>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<sub-flow name="setDropoff" doc:id="b6843ef3-a0e9-4f0d-9288-1d5f09b4e901" >
+		<set-variable value="#[message.attributes.queryParams.dropoff]" doc:name="destination" doc:id="de8d600f-8204-485b-9f23-5b17d022334a" variableName="destination"/>
+	</sub-flow>
+	<flow name="postRental" doc:id="d10618d1-cf9e-4b41-9b44-affbd83440b5" >
+		<ee:transform doc:name="Transform Message" doc:id="1e176f41-d06d-42c1-948f-e672a94c5826" >
+			<ee:message >
+				<ee:set-payload resource="json_carRental_playground.dwl" />
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="DWoutput" ><![CDATA[%dw 2.0
+output application/xml
+---
+data: {
+	rental @(company: payload.company): {
+		dropoff: payload.dropoff
+	},
+	hub: "ABC"
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="3a5d7738-450d-4aa4-804a-3e381de28dd8" message="#[vars.DWoutput]"/>
+	</flow>
+	<flow name="postMultipleRentals" doc:id="14c479e7-c679-427c-8214-0ce0d747462d" >
+		<http:listener doc:name="postMultipleRentals" doc:id="73c2b1d3-3e5c-4d93-921d-3e4fa5658e84" config-ref="HTTP_Listener_config" path="/multiplerentals"/>
+		<ee:transform doc:name="Transform Message" doc:id="4c9af9da-3cf0-442e-b891-3d8f176d4673" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/dw
+
+import dasherize from dw::core::Strings
+
+//var numSeats = (x=5) -> x
+
+//var numSeats = (carBrand: String) -> 
+//if(["Nissan Sentra", "Toyota Corolla"] contains carBrand)
+//	5
+//else
+//	7
+
+
+type Currency = String {format: "###.00"}
+
+type CarRental = Object {class: "com.conflowence.training.CarRental"}
+
+fun getNumSeats(carBrand: String) = do {
+	var maxSeats = 
+	if(["Nissan Sentra", "Toyota Corolla"] contains carBrand)
+		5
+	else 
+		7
+	---
+	maxSeats
+}
+---
+rentals: ( payload..*return map (object, index) -> {	
+		
+			dropoffLocation: object.dropoff replace /(asd)/ with "ASD",
+			price: object.price as Number as Currency as Number,
+			//carTotalSeats: getNumSeats(object.carBrand as String),
+			totalSeats: lookup("getTotalSeats", {carBrand: object.carBrand}),
+			carBrand: dasherize(object.carBrand as String),
+			rentDate: object.rentDate as Date {format: "yyyy/MM/dd"} as String {format: "MMM dd, yyyy"},
+			availableSeats: object.emptySeats as Number
+		
+} as Object) distinctBy $ orderBy $.price orderBy $.price
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="afa3d619-7aca-4572-87d3-06ed32fea508" />
+	</flow>
+	<flow name="getTotalSeats" doc:id="cec576de-2f22-418b-be60-6d8bf2d2e391" >
+		<ee:transform doc:name="Transform Message" doc:id="12d00cfa-ba1a-48d8-82ca-20db19711efa" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+
+fun getNumSeats(carBrand: String) = do {
+	var maxSeats = 
+	if(["Nissan Sentra", "Toyota Corolla"] contains carBrand)
+		5
+	else 
+		7
+	---
+	maxSeats
+}
+---
+getNumSeats(payload.carBrand)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

@@ -1,0 +1,18 @@
+<listAllRentalsResponse>
+    <return companyName="Yo">
+        <rentDate>2021/04/05</rentDate>
+        <dropoff>asd</dropoff>
+        <carSeats>4</carSeats>
+        <pickup>ohare</pickup>
+        <carBrand>honda</carBrand>
+        <price>1003.5</price>
+    </return>
+    <return companyName="sd">
+        <rentDate>2021/04/06</rentDate>
+        <dropoff>sdf</dropoff>
+        <carSeats>sdf</carSeats>
+        <pickup>sdf</pickup>
+        <carBrand>sdf dfd</carBrand>
+        <price>123</price>
+    </return>
+</listAllRentalsResponse>

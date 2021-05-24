@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:hertz-car-rental-api="http://www.mulesoft.org/schema/mule/hertz-car-rental-api"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/hertz-car-rental-api http://www.mulesoft.org/schema/mule/hertz-car-rental-api/current/mule-hertz-car-rental-api.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<configuration-properties doc:name="Configuration properties" doc:id="b05487f1-92ec-4fb5-86a3-413a0c7c769e" file="config.yaml" />
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="4c71f45d-e792-4919-9d1b-ad67de67fc89" >
+		<http:listener-connection host="0.0.0.0" port="8082" />
+	</http:listener-config>
+	<hertz-car-rental-api:config name="Hertz_Car_Rental_API_Config" doc:name="Hertz Car Rental API Config" doc:id="4627fca7-2a6a-4df0-9035-d522f23f806f" property_host="${hertz.host}" property_port="${hertz.port}" property_protocol="${hertz.protocol}" property_basePath="${hertz.basepath}"/>
+	<configuration doc:name="Configuration" doc:id="0037f5a1-54f7-42e2-bd96-f6c22e33472f" defaultErrorHandler-ref="globalError_Handler"/>
+	<error-handler name="globalError_Handler" doc:id="7327f9f0-89c0-4dac-ae3d-a5c192868266" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="9c13432e-6198-4521-b4da-cf1e80bd9849" type="ANY">
+			<ee:transform doc:name="Transform Message" doc:id="b6f111f7-61b5-4274-ad13-1f1ea77f869a" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": "error"
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</on-error-propagate>
+	</error-handler>
+</mule>

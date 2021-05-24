@@ -1,0 +1,10 @@
+{
+  "sampleData": {
+    "4c9af9da-3cf0-442e-b891-3d8f176d4673": {
+      "payload": "sample_data/listallrentalsresponse.xml"
+    },
+    "1e176f41-d06d-42c1-948f-e672a94c5826": {
+      "payload": "sample_data/json.json"
+    }
+  }
+}
